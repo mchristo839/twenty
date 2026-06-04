@@ -1,0 +1,7 @@
+# Never commit real secrets or local data
+.env
+*.env.local
+backups/
+*.sql
+*.sql.gz
+*.dump

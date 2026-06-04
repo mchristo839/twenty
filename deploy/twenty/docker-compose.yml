@@ -1,0 +1,125 @@
+name: twenty
+
+# Twenty CRM self-hosted stack for the Contabo VPS.
+# Source of truth: official packages/twenty-docker/docker-compose.yml @ v2.8.3,
+# adapted for: (1) pinned version, (2) Postgres/Redis kept off the public internet,
+# (3) the app reachable only through the existing Caddy reverse proxy.
+#
+# IMPORTANT NETWORKING NOTES
+# - db (Postgres) and redis publish NO host ports -> they are only reachable on the
+#   internal "twenty_default" compose network. Do not add a `ports:` block to them.
+# - server publishes ONLY on 127.0.0.1:3000 (loopback), never 0.0.0.0. Nothing hits
+#   Twenty from the public internet except through Caddy. See deploy/twenty/README.md
+#   "Wiring Caddy to Twenty" for the two supported ways to connect your Caddy container.
+
+services:
+  server:
+    image: twentycrm/twenty:${TAG}
+    volumes:
+      - server-local-data:/app/packages/twenty-server/.local-storage
+    ports:
+      # Loopback-only: Caddy (on this host) proxies to it. Not exposed publicly.
+      - "127.0.0.1:3000:3000"
+    environment:
+      NODE_PORT: 3000
+      PG_DATABASE_URL: postgres://${PG_DATABASE_USER:-postgres}:${PG_DATABASE_PASSWORD}@${PG_DATABASE_HOST:-db}:${PG_DATABASE_PORT:-5432}/default
+      SERVER_URL: ${SERVER_URL}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      DISABLE_DB_MIGRATIONS: ${DISABLE_DB_MIGRATIONS:-}
+      DISABLE_CRON_JOBS_REGISTRATION: ${DISABLE_CRON_JOBS_REGISTRATION:-}
+
+      STORAGE_TYPE: ${STORAGE_TYPE:-local}
+
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      FALLBACK_ENCRYPTION_KEY: ${FALLBACK_ENCRYPTION_KEY:-}
+      APP_SECRET: ${APP_SECRET:-}
+
+      # First boot: signup is open so you can create the admin. After that, set
+      # IS_SIGNUP_ENABLED=false in .env and `docker compose up -d` to lock it down.
+      IS_SIGNUP_ENABLED: ${IS_SIGNUP_ENABLED:-true}
+
+      # --- AI features (optional) ---
+      # Twenty's AI chat needs an LLM provider. Provide the key in .env (never inline).
+      # Confirm the exact variable names for your version in Settings > AI in the UI;
+      # these are passed through for convenience.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: curl --fail http://localhost:3000/healthz
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: always
+
+  worker:
+    image: twentycrm/twenty:${TAG}
+    volumes:
+      - server-local-data:/app/packages/twenty-server/.local-storage
+    command: ["yarn", "worker:prod"]
+    environment:
+      PG_DATABASE_URL: postgres://${PG_DATABASE_USER:-postgres}:${PG_DATABASE_PASSWORD}@${PG_DATABASE_HOST:-db}:${PG_DATABASE_PORT:-5432}/default
+      SERVER_URL: ${SERVER_URL}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      DISABLE_DB_MIGRATIONS: "true"            # migrations run on the server
+      DISABLE_CRON_JOBS_REGISTRATION: "true"   # cron registers on the server
+      STORAGE_TYPE: ${STORAGE_TYPE:-local}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      FALLBACK_ENCRYPTION_KEY: ${FALLBACK_ENCRYPTION_KEY:-}
+      APP_SECRET: ${APP_SECRET:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+      server:
+        condition: service_healthy
+    restart: always
+
+  db:
+    image: postgres:16
+    # No `ports:` on purpose -> Postgres is NOT reachable from outside the compose network.
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${PG_DATABASE_NAME:-default}
+      POSTGRES_PASSWORD: ${PG_DATABASE_PASSWORD}
+      POSTGRES_USER: ${PG_DATABASE_USER:-postgres}
+    healthcheck:
+      test: pg_isready -U ${PG_DATABASE_USER:-postgres} -h localhost -d postgres
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: always
+
+  redis:
+    image: redis
+    # No `ports:` on purpose -> Redis is NOT reachable from outside the compose network.
+    restart: always
+    command: ["--maxmemory-policy", "noeviction"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db-data:
+  server-local-data:
+
+# --- OPTIONAL: share a network with your existing Caddy container ---
+# If your Caddy is containerized on its own network and you prefer to proxy to
+# "server:3000" instead of 127.0.0.1:3000, uncomment the block below, attach the
+# `server` service to `proxy`, and `docker network connect proxy <caddy_container>`.
+# This touches your Caddy container, so confirm before applying (see README).
+#
+# networks:
+#   default:
+#   proxy:
+#     external: true
+#     name: <your_existing_caddy_network>
+#
+# and under services.server add:
+#   networks: [default, proxy]

@@ -1,0 +1,3 @@
+# Daily Postgres backup for Twenty at 03:15. Install with:  crontab -e   (paste the line)
+# or:  ( crontab -l 2>/dev/null; cat /opt/twenty/scripts/crontab.txt ) | crontab -
+15 3 * * * cd /opt/twenty && /opt/twenty/scripts/backup.sh >> /opt/twenty/backups/backup.log 2>&1

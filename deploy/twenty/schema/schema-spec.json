@@ -1,0 +1,84 @@
+{
+  "object": {
+    "nameSingular": "lead",
+    "namePlural": "leads",
+    "labelSingular": "Lead",
+    "labelPlural": "Leads",
+    "icon": "IconTargetArrow",
+    "description": "Cold-outreach leads across all businesses (single-object model, split by Business)."
+  },
+  "labelIdentifierField": "name (rename the default 'Name' field to 'Company name')",
+  "fields": [
+    {
+      "label": "Company name",
+      "apiName": "name",
+      "type": "TEXT",
+      "note": "Rename the object's default 'Name' label field to 'Company name' (it stays the record title)."
+    },
+    {
+      "label": "Business",
+      "apiName": "business",
+      "type": "SELECT",
+      "options": [
+        { "label": "CallCrew", "value": "CALL_CREW", "color": "blue" },
+        { "label": "Utomat", "value": "UTOMAT", "color": "purple" },
+        { "label": "Grease Trap Repair", "value": "GREASE_TRAP_REPAIR", "color": "green" }
+      ]
+    },
+    { "label": "Contact name", "apiName": "contactName", "type": "TEXT" },
+    { "label": "Email", "apiName": "email", "type": "EMAILS" },
+    { "label": "Phone", "apiName": "phone", "type": "PHONES" },
+    {
+      "label": "Email status",
+      "apiName": "emailStatus",
+      "type": "SELECT",
+      "options": [
+        { "label": "Verified", "value": "VERIFIED", "color": "green" },
+        { "label": "Form/phone only", "value": "FORM_PHONE_ONLY", "color": "yellow" },
+        { "label": "Not researched", "value": "NOT_RESEARCHED", "color": "gray" }
+      ]
+    },
+    { "label": "Website", "apiName": "website", "type": "LINKS" },
+    { "label": "City / location", "apiName": "city", "type": "TEXT" },
+    { "label": "Rating", "apiName": "rating", "type": "NUMBER", "settings": { "decimals": 1 } },
+    { "label": "Reviews", "apiName": "reviews", "type": "NUMBER", "settings": { "decimals": 0 } },
+    { "label": "Address", "apiName": "address", "type": "TEXT", "note": "Single-line text for clean CSV mapping." },
+    {
+      "label": "Segment",
+      "apiName": "segment",
+      "type": "SELECT",
+      "note": "CallCrew values seeded; add Utomat/Grease Trap values later.",
+      "options": [
+        { "label": "Garage door", "value": "GARAGE_DOOR", "color": "blue" },
+        { "label": "Roofing", "value": "ROOFING", "color": "orange" },
+        { "label": "HVAC", "value": "HVAC", "color": "sky" }
+      ]
+    },
+    { "label": "Source", "apiName": "source", "type": "TEXT", "note": "e.g. Google Places, Firecrawl." },
+    {
+      "label": "Outreach status",
+      "apiName": "outreachStatus",
+      "type": "SELECT",
+      "options": [
+        { "label": "Not contacted", "value": "NOT_CONTACTED", "color": "gray" },
+        { "label": "Contacted", "value": "CONTACTED", "color": "blue" },
+        { "label": "Follow-up 1", "value": "FOLLOW_UP_1", "color": "turquoise" },
+        { "label": "Follow-up 2", "value": "FOLLOW_UP_2", "color": "sky" },
+        { "label": "Replied", "value": "REPLIED", "color": "purple" },
+        { "label": "Booked", "value": "BOOKED", "color": "green" },
+        { "label": "Dead", "value": "DEAD", "color": "red" }
+      ]
+    },
+    { "label": "Last contacted", "apiName": "lastContacted", "type": "DATE_TIME" },
+    { "label": "Next action", "apiName": "nextAction", "type": "DATE_TIME" },
+    { "label": "Notes", "apiName": "notes", "type": "TEXT", "note": "Multi-line." }
+  ],
+  "views": [
+    { "name": "CallCrew pipeline",   "kind": "Kanban", "filter": "Business = CallCrew",           "groupBy": "Outreach status", "favorite": true },
+    { "name": "Utomat pipeline",     "kind": "Kanban", "filter": "Business = Utomat",             "groupBy": "Outreach status", "favorite": true },
+    { "name": "Grease Trap pipeline","kind": "Kanban", "filter": "Business = Grease Trap Repair", "groupBy": "Outreach status", "favorite": true },
+    { "name": "CallCrew — send list",   "kind": "Table", "filter": "Business = CallCrew AND Email status = Verified" },
+    { "name": "Utomat — send list",     "kind": "Table", "filter": "Business = Utomat AND Email status = Verified" },
+    { "name": "Grease Trap — send list","kind": "Table", "filter": "Business = Grease Trap Repair AND Email status = Verified" }
+  ]
+}
