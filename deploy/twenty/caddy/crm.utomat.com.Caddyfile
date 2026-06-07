@@ -1,0 +1,29 @@
+# Twenty CRM — Caddy site block.
+# Add this to your existing Caddyfile (or as a separate file if your Caddy uses
+# an import glob), then reload Caddy:  docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
+#
+# Pick the ONE reverse_proxy line that matches how your Caddy reaches your other
+# containers (Evolution API, Paperclip). See README "Wiring Caddy to Twenty".
+
+crm.utomat.com {
+	encode zstd gzip
+
+	# --- Option A: Caddy runs with host networking (or on the host) ---
+	# Twenty's server is published on 127.0.0.1:3000.
+	reverse_proxy 127.0.0.1:3000
+
+	# --- Option B: Caddy is containerized on a bridge network ---
+	# Add `extra_hosts: ["host.docker.internal:host-gateway"]` to your Caddy
+	# container, then use:
+	# reverse_proxy host.docker.internal:3000
+
+	# --- Option C: Caddy shares a Docker network with Twenty ---
+	# Attach Twenty's `server` to your Caddy network (see docker-compose.yml),
+	# then proxy by service name:
+	# reverse_proxy server:3000
+}
+
+# TLS: utomat.com is on Cloudflare. For Caddy to auto-issue a Let's Encrypt
+# cert, set the `crm` DNS record to DNS-only (grey cloud). If you instead keep it
+# proxied (orange cloud), use a Cloudflare Origin Certificate and point Caddy at it
+# with:  tls /etc/caddy/certs/crm-origin.pem /etc/caddy/certs/crm-origin.key

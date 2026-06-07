@@ -1,0 +1,13 @@
+{
+  "_comment": "Paste the mcpServers block into your Claude Code project's .mcp.json (or run the `claude mcp add` command in README-mcp.md). Replace the API key and the index.js path. The server is stdio: Claude Code spawns it locally and it talks to your Twenty over https.",
+  "mcpServers": {
+    "twenty-crm": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/TO/twenty-crm-mcp-server/index.js"],
+      "env": {
+        "TWENTY_API_KEY": "PASTE_YOUR_TWENTY_API_KEY",
+        "TWENTY_BASE_URL": "https://crm.utomat.com"
+      }
+    }
+  }
+}
