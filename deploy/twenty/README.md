@@ -51,7 +51,7 @@ cd /opt/twenty
 cp .env.example .env
 ./scripts/gen-secrets.sh          # fills PG password + ENCRYPTION_KEY + APP_SECRET
 # Confirm in .env:  TAG=v2.8.3,  SERVER_URL=https://crm.utomat.com,  IS_SIGNUP_ENABLED=true
-# (Optional AI) paste your Anthropic key into ANTHROPIC_API_KEY=
+# (AI) DeepSeek is baked in: replace sk-REPLACE_WITH_YOUR_DEEPSEEK_KEY in AI_PROVIDERS with your DeepSeek key (integrations/ai-provider.md)
 ```
 **Back up your `ENCRYPTION_KEY`** somewhere safe — losing it means losing every
 encrypted secret in the DB.
@@ -106,6 +106,7 @@ docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
   (or set Business after import); Segment = `Garage door`.
 - **n8n reply tracking:** `integrations/n8n-reply-update.md` (API key location + curl).
 - **MCP for Claude Code:** `mcp/README-mcp.md` + `mcp/claude-mcp-config.json`.
+- **AI provider (DeepSeek baked in):** `integrations/ai-provider.md` — paste your DeepSeek key into `AI_PROVIDERS` in `.env`.
 
 ---
 

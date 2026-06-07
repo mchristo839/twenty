@@ -39,10 +39,16 @@ services:
       IS_SIGNUP_ENABLED: ${IS_SIGNUP_ENABLED:-true}
 
       # --- AI features (optional) ---
-      # Twenty's AI chat needs an LLM provider. Provide the key in .env (never inline).
-      # Confirm the exact variable names for your version in Settings > AI in the UI;
-      # these are passed through for convenience.
+      # Built-in providers (v2.8.x): set the matching key below and pick a model in the UI.
+      # DeepSeek / OpenRouter / any OpenAI-compatible endpoint go through AI_PROVIDERS (JSON).
+      # See integrations/ai-provider.md. Provide values in .env, never inline here.
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      XAI_API_KEY: ${XAI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      AI_PROVIDERS: ${AI_PROVIDERS:-}
     depends_on:
       db:
         condition: service_healthy
@@ -70,7 +76,13 @@ services:
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       FALLBACK_ENCRYPTION_KEY: ${FALLBACK_ENCRYPTION_KEY:-}
       APP_SECRET: ${APP_SECRET:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      XAI_API_KEY: ${XAI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      AI_PROVIDERS: ${AI_PROVIDERS:-}
     depends_on:
       db:
         condition: service_healthy
